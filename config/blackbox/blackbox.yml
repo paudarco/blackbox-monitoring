@@ -1,0 +1,149 @@
+---
+# =============================================================================
+# Blackbox Exporter Configuration
+# Defines probe modules: HTTP, HTTPS, TLS checks, DNS, TCP
+# =============================================================================
+
+modules:
+
+  # ---------------------------------------------------------------------------
+  # http_2xx — basic HTTP/HTTPS availability check, expects 2xx response
+  # ---------------------------------------------------------------------------
+  http_2xx:
+    prober: http
+    timeout: 10s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: []  # Defaults to 2xx
+      method: GET
+      follow_redirects: true
+      preferred_ip_protocol: "ip4"
+      ip_protocol_fallback: true
+      tls_config:
+        insecure_skip_verify: false
+
+  # ---------------------------------------------------------------------------
+  # http_2xx_insecure — same but skip TLS verification (for self-signed certs)
+  # ---------------------------------------------------------------------------
+  http_2xx_insecure:
+    prober: http
+    timeout: 10s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: []
+      method: GET
+      follow_redirects: true
+      preferred_ip_protocol: "ip4"
+      tls_config:
+        insecure_skip_verify: true
+
+  # ---------------------------------------------------------------------------
+  # http_post_2xx — POST endpoint check (e.g. health-check APIs)
+  # ---------------------------------------------------------------------------
+  http_post_2xx:
+    prober: http
+    timeout: 10s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      method: POST
+      headers:
+        Content-Type: application/json
+      body: '{}'
+      follow_redirects: true
+      preferred_ip_protocol: "ip4"
+
+  # ---------------------------------------------------------------------------
+  # http_json_api — checks JSON API, validates response body contains key
+  # Used together with Prometheus metric: probe_http_content_length > 0
+  # ---------------------------------------------------------------------------
+  http_json_api:
+    prober: http
+    timeout: 15s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200]
+      method: GET
+      follow_redirects: true
+      preferred_ip_protocol: "ip4"
+      headers:
+        Accept: application/json
+      fail_if_not_matches_regexp:
+        - "." # Response body must be non-empty
+
+  # ---------------------------------------------------------------------------
+  # http_check_body — validates specific string present in response body
+  # ---------------------------------------------------------------------------
+  http_check_body:
+    prober: http
+    timeout: 15s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200]
+      method: GET
+      follow_redirects: true
+      preferred_ip_protocol: "ip4"
+      fail_if_not_matches_regexp:
+        - "Example Domain"  # Override per target via relabeling if needed
+
+  # ---------------------------------------------------------------------------
+  # http_tls_expiry — dedicated TLS certificate expiry check
+  # Probe fails if cert expires in < 14 days (via alert rule)
+  # ---------------------------------------------------------------------------
+  http_tls_expiry:
+    prober: http
+    timeout: 10s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200, 301, 302, 403, 404]
+      method: GET
+      follow_redirects: false
+      preferred_ip_protocol: "ip4"
+      tls_config:
+        insecure_skip_verify: false
+
+  # ---------------------------------------------------------------------------
+  # http_strict_200 — must return exactly 200, no redirects
+  # ---------------------------------------------------------------------------
+  http_strict_200:
+    prober: http
+    timeout: 10s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200]
+      method: GET
+      follow_redirects: false
+      preferred_ip_protocol: "ip4"
+
+  # ---------------------------------------------------------------------------
+  # http_broken — intentionally broken probe for alert testing
+  # Expects a status that will never match, so probe always fails
+  # ---------------------------------------------------------------------------
+  http_broken:
+    prober: http
+    timeout: 5s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [999]   # No server returns 999 → always fails
+      method: GET
+      follow_redirects: false
+
+  # ---------------------------------------------------------------------------
+  # tcp_connect — raw TCP port connectivity check
+  # ---------------------------------------------------------------------------
+  tcp_connect:
+    prober: tcp
+    timeout: 10s
+    tcp:
+      preferred_ip_protocol: "ip4"
+
+  # ---------------------------------------------------------------------------
+  # dns_lookup — DNS resolution check
+  # ---------------------------------------------------------------------------
+  dns:
+    prober: dns
+    timeout: 10s
+    dns:
+      query_name: "google.com"
+      query_type: "A"
+      valid_rcodes:
+        - NOERROR

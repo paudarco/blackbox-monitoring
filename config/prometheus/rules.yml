@@ -1,0 +1,194 @@
+---
+# =============================================================================
+# Prometheus Alerting Rules — External Monitoring
+# =============================================================================
+
+groups:
+
+  # ---------------------------------------------------------------------------
+  # Service Availability Alerts
+  # ---------------------------------------------------------------------------
+  - name: service_availability
+    interval: 30s
+    rules:
+
+      # Target is completely unreachable (probe failed)
+      - alert: ServiceDown
+        expr: probe_success == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.instance }} is DOWN"
+          description: |
+            Probe for {{ $labels.instance }} has been failing for more than 2 minutes.
+            Job: {{ $labels.job }}
+            Check type: {{ $labels.check_type }}
+          runbook: "Check if the service is reachable. Verify DNS resolution and network connectivity."
+
+      # Target was down, now recovered
+      - alert: ServiceRecovered
+        expr: probe_success == 1
+        for: 1m
+        labels:
+          severity: info
+        annotations:
+          summary: "Service {{ $labels.instance }} has RECOVERED"
+          description: |
+            Probe for {{ $labels.instance }} is now succeeding.
+            Job: {{ $labels.job }}
+
+  # ---------------------------------------------------------------------------
+  # Latency / Timeout Alerts
+  # ---------------------------------------------------------------------------
+  - name: service_latency
+    interval: 30s
+    rules:
+
+      # Response time too high (> 3 seconds)
+      - alert: ServiceHighLatency
+        expr: probe_duration_seconds > 3
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency on {{ $labels.instance }}"
+          description: |
+            Service {{ $labels.instance }} is responding slowly.
+            Current latency: {{ $value | humanizeDuration }}
+            Threshold: 3s
+
+      # Response time critically high (> 8 seconds)
+      - alert: ServiceCriticalLatency
+        expr: probe_duration_seconds > 8
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical latency on {{ $labels.instance }}"
+          description: |
+            Service {{ $labels.instance }} is nearly timing out.
+            Current latency: {{ $value | humanizeDuration }}
+            Threshold: 8s
+
+  # ---------------------------------------------------------------------------
+  # TLS Certificate Expiry Alerts
+  # ---------------------------------------------------------------------------
+  - name: tls_certificate
+    interval: 1h
+    rules:
+
+      # Certificate expires in less than 14 days
+      - alert: SSLCertificateExpiringSoon
+        expr: |
+          probe_ssl_earliest_cert_expiry - time() < 14 * 24 * 3600
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "SSL certificate expiring soon for {{ $labels.instance }}"
+          description: |
+            The SSL certificate for {{ $labels.instance }} expires in
+            {{ $value | humanizeDuration }}.
+            Renew the certificate immediately.
+
+      # Certificate expires in less than 3 days
+      - alert: SSLCertificateExpiringCritical
+        expr: |
+          probe_ssl_earliest_cert_expiry - time() < 3 * 24 * 3600
+        for: 30m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SSL certificate expires VERY SOON for {{ $labels.instance }}"
+          description: |
+            The SSL certificate for {{ $labels.instance }} expires in less than 3 days!
+            Time remaining: {{ $value | humanizeDuration }}
+
+      # Certificate already expired
+      - alert: SSLCertificateExpired
+        expr: |
+          probe_ssl_earliest_cert_expiry - time() < 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SSL certificate EXPIRED for {{ $labels.instance }}"
+          description: |
+            The SSL certificate for {{ $labels.instance }} has already expired!
+
+  # ---------------------------------------------------------------------------
+  # HTTP Status Code Alerts
+  # ---------------------------------------------------------------------------
+  - name: http_status
+    interval: 30s
+    rules:
+
+      # HTTP probe returned non-2xx status
+      - alert: HTTPStatusCodeError
+        expr: |
+          probe_success == 0
+          and
+          probe_http_status_code != 0
+          and
+          (probe_http_status_code < 200 or probe_http_status_code >= 300)
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "HTTP error on {{ $labels.instance }}"
+          description: |
+            {{ $labels.instance }} returned HTTP status {{ $value }}.
+            Expected: 2xx
+
+  # ---------------------------------------------------------------------------
+  # Demo / Test Alert (Broken Check)
+  # ---------------------------------------------------------------------------
+  - name: demo_alerts
+    interval: 30s
+    rules:
+
+      # Intentionally broken check — fires immediately for alert pipeline testing
+      - alert: DemoAlertBrokenCheck
+        expr: |
+          probe_success{job="blackbox_broken_demo"} == 0
+        for: 1m
+        labels:
+          severity: warning
+          demo: "true"
+        annotations:
+          summary: "[DEMO] Broken check is failing as expected"
+          description: |
+            This is an intentionally failing probe used to test the alerting pipeline.
+            Instance: {{ $labels.instance }}
+            This alert is expected and confirms Telegram notifications are working.
+
+  # ---------------------------------------------------------------------------
+  # Monitoring System Self-Health
+  # ---------------------------------------------------------------------------
+  - name: monitoring_health
+    interval: 60s
+    rules:
+
+      # Blackbox exporter is unreachable
+      - alert: BlackboxExporterDown
+        expr: up{job="blackbox_exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Blackbox Exporter is DOWN"
+          description: |
+            The Blackbox Exporter is unreachable. All probe checks are not running.
+            This is a critical failure of the monitoring system itself.
+
+      # Prometheus itself has issues
+      - alert: PrometheusDown
+        expr: up{job="prometheus"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Prometheus is not scraping itself"
+          description: |
+            Prometheus self-scrape is failing. This indicates a serious internal issue.

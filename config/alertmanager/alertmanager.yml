@@ -1,0 +1,66 @@
+---
+# =============================================================================
+# Alertmanager Configuration
+# Native Telegram receiver (Alertmanager v0.27+ supports telegram_configs)
+# =============================================================================
+
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: "telegram-alerts"
+  group_by: ["alertname", "instance", "job"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+  routes:
+    - matchers:
+        - demo="true"
+      receiver: "telegram-alerts"
+      group_wait: 10s
+      repeat_interval: 30m
+
+    - matchers:
+        - severity="critical"
+      receiver: "telegram-alerts"
+      group_wait: 10s
+      group_interval: 1m
+      repeat_interval: 1h
+
+    - matchers:
+        - severity="info"
+      receiver: "telegram-alerts"
+      group_wait: 60s
+      repeat_interval: 24h
+
+inhibit_rules:
+  - source_matchers:
+      - severity="critical"
+    target_matchers:
+      - severity="warning"
+    equal: ["instance", "alertname"]
+
+receivers:
+  - name: "telegram-alerts"
+    telegram_configs:
+      - bot_token: "${TELEGRAM_BOT_TOKEN}"
+        chat_id: "${TELEGRAM_CHAT_ID}"
+        api_url: "https://api.telegram.org"
+        parse_mode: "HTML"
+        message: |
+          {{ if eq .Status "firing" }}🔴 <b>ALERT FIRING</b>{{ else }}✅ <b>RESOLVED</b>{{ end }}
+
+          {{ range .Alerts -}}
+          <b>{{ .Annotations.summary }}</b>
+          {{ if .Annotations.description }}
+          {{ .Annotations.description }}{{ end }}
+          <b>Instance:</b> <code>{{ .Labels.instance }}</code>
+          <b>Severity:</b> {{ .Labels.severity }}
+          <b>Started:</b> {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+          {{ if eq $.Status "resolved" }}<b>Resolved:</b> {{ .EndsAt.Format "2006-01-02 15:04:05 UTC" }}{{ end }}
+          ---
+          {{ end }}
+        send_resolved: true
+
+  - name: "null"

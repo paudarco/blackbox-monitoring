@@ -1,0 +1,148 @@
+# =============================================================================
+# Примеры проверок — готовые фрагменты для добавления в prometheus.yml
+# =============================================================================
+# Не добавлять этот файл напрямую — это справочник с примерами.
+# Скопируйте нужный блок в config/prometheus/prometheus.yml
+
+# ---------------------------------------------------------------------------
+# Пример 1: Простая проверка сайта
+# Проверяет: HTTP 2xx, TLS, latency
+# ---------------------------------------------------------------------------
+example_website_check:
+  job_name: "blackbox_http_websites"
+  metrics_path: /probe
+  params:
+    module: [http_2xx]
+  static_configs:
+    - targets:
+        - https://example.com
+      labels:
+        check_type: "website"
+        team: "platform"
+  relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - source_labels: [__param_target]
+      target_label: instance
+    - target_label: __address__
+      replacement: blackbox:9115
+
+# ---------------------------------------------------------------------------
+# Пример 2: REST API health-check с проверкой JSON body
+# Проверяет: статус 200, непустой JSON ответ
+# ---------------------------------------------------------------------------
+example_api_check:
+  job_name: "blackbox_http_my_api"
+  metrics_path: /probe
+  params:
+    module: [http_json_api]
+  static_configs:
+    - targets:
+        - https://api.example.com/v1/health
+      labels:
+        check_type: "api"
+        service: "my-api"
+  relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - source_labels: [__param_target]
+      target_label: instance
+    - target_label: __address__
+      replacement: blackbox:9115
+
+# ---------------------------------------------------------------------------
+# Пример 3: Проверка содержимого страницы по regexp
+# Сначала добавьте модуль в blackbox.yml, затем используйте здесь
+# ---------------------------------------------------------------------------
+example_body_check:
+  # В config/blackbox/blackbox.yml добавить:
+  # http_check_myapp:
+  #   prober: http
+  #   http:
+  #     valid_status_codes: [200]
+  #     fail_if_not_matches_regexp:
+  #       - "Welcome|Dashboard|Logged in"
+  #     fail_if_matches_regexp:
+  #       - "Error 500|Maintenance|Unavailable"
+
+  job_name: "blackbox_body_myapp"
+  metrics_path: /probe
+  params:
+    module: [http_check_myapp]
+  static_configs:
+    - targets:
+        - https://app.example.com
+      labels:
+        check_type: "body"
+        service: "myapp"
+  relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - source_labels: [__param_target]
+      target_label: instance
+    - target_label: __address__
+      replacement: blackbox:9115
+
+# ---------------------------------------------------------------------------
+# Пример 4: TLS-сертификат для нового домена
+# ---------------------------------------------------------------------------
+example_tls_check:
+  # Просто добавить в targets раздела blackbox_tls_expiry:
+  # - https://new-domain.example.com
+
+# ---------------------------------------------------------------------------
+# Пример 5: TCP-проверка (например, база данных, SMTP)
+# ---------------------------------------------------------------------------
+example_tcp_check:
+  job_name: "blackbox_tcp_postgres"
+  metrics_path: /probe
+  params:
+    module: [tcp_connect]
+  static_configs:
+    - targets:
+        - db.example.com:5432
+      labels:
+        check_type: "tcp"
+        service: "postgres"
+  relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - source_labels: [__param_target]
+      target_label: instance
+    - target_label: __address__
+      replacement: blackbox:9115
+
+# ---------------------------------------------------------------------------
+# Пример 6: Проверка с Bearer token авторизацией
+# В blackbox.yml добавить модуль:
+# ---------------------------------------------------------------------------
+example_authenticated_blackbox_module:
+  # http_bearer_api:
+  #   prober: http
+  #   timeout: 10s
+  #   http:
+  #     valid_status_codes: [200]
+  #     method: GET
+  #     headers:
+  #       Authorization: "Bearer {{ YOUR_STATIC_TOKEN }}"
+  #       Accept: application/json
+  #
+  # ВАЖНО: не хардкодить токен — лучше использовать
+  # переменную окружения и envsubst при старте
+
+# ---------------------------------------------------------------------------
+# Пример 7: Намеренно сломанная проверка (для тестирования алертов)
+# ---------------------------------------------------------------------------
+example_broken_check_for_testing:
+  # В blackbox.yml уже есть модуль http_broken.
+  # Добавьте любой реальный URL:
+  job_name: "blackbox_broken_test"
+  metrics_path: /probe
+  params:
+    module: [http_broken]   # Ожидает статус 999, которого не существует
+  static_configs:
+    - targets:
+        - https://httpbin.org/status/200
+      labels:
+        check_type: "demo_broken"
+        purpose: "alert_testing"

@@ -33,7 +33,7 @@ docker compose up -d
 docker compose ps
 
 # 6. Открыть Grafana
-# http://localhost:3000  (admin / changeme)
+# http://localhost:3000  (логин/пароль из .env: GF_ADMIN_USER / GF_ADMIN_PASSWORD)
 ```
 
 Через 60–90 секунд Prometheus начнёт собирать метрики.
@@ -76,3 +76,13 @@ Blackbox Exporter — наиболее зрелый и поддерживаем�
 - Работает без агентов на целевых серверах
 
 Подробнее: [docs/limitations.md](docs/limitations.md)
+
+
+## Самопроверка соответствия ТЗ
+
+- ✅ Self-hosted open-source стек (Prometheus + Blackbox + Alertmanager + Grafana).
+- ✅ Проверки HTTP/HTTPS, status code, body/JSON, latency/timeout, TLS expiry.
+- ✅ Telegram-алерты через `.env` (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`).
+- ✅ Есть demo-блок для проверки алертов (намеренно падающий check).
+- ✅ Документация: запуск, алерты, добавление checks, ограничения.
+- ✅ История результатов хранится в Prometheus TSDB (retention настраивается в `.env`).

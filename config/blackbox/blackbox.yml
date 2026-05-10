@@ -67,7 +67,7 @@ modules:
       preferred_ip_protocol: "ip4"
       headers:
         Accept: application/json
-      fail_if_not_matches_regexp:
+      fail_if_body_not_matches_regexp:
         - "." # Response body must be non-empty
 
   # ---------------------------------------------------------------------------
@@ -82,7 +82,7 @@ modules:
       method: GET
       follow_redirects: true
       preferred_ip_protocol: "ip4"
-      fail_if_not_matches_regexp:
+      fail_if_body_not_matches_regexp:
         - "Example Domain"  # Override per target via relabeling if needed
 
   # ---------------------------------------------------------------------------

@@ -78,7 +78,7 @@ modules:
     http:
       valid_status_codes: [200]
       method: GET
-      fail_if_not_matches_regexp:
+      fail_if_body_not_matches_regexp:
         - "Welcome to MyApp"     # текст, который должен быть в ответе
       fail_if_matches_regexp:
         - "Error|Exception|500"  # текст, которого не должно быть
@@ -135,7 +135,7 @@ modules:
 |----------------------------|-----------------------------------------------------|
 | Статус-код = 200           | `valid_status_codes: [200]`                         |
 | Статус-код = любой 2xx     | `valid_status_codes: []` (по умолчанию)             |
-| Тело содержит строку       | `fail_if_not_matches_regexp: ["your_string"]`       |
+| Тело содержит строку       | `fail_if_body_not_matches_regexp: ["your_string"]`       |
 | Тело НЕ содержит строку    | `fail_if_matches_regexp: ["error_string"]`          |
 | Таймаут                    | `timeout: 10s` в модуле + порог в rules.yml         |
 | TLS-сертификат не истёк    | `http_tls_expiry` модуль + правило алерта           |
@@ -147,7 +147,7 @@ modules:
 curl -X POST http://localhost:9090/-/reload
 
 # Горячая перезагрузка Blackbox Exporter
-curl -X POST http://localhost:9115/-/reload
+docker compose restart blackbox
 
 # Или перезапустить отдельный сервис
 docker compose restart prometheus

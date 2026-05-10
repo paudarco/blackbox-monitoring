@@ -99,8 +99,8 @@
         },
         "textMode": "auto",
         "text": {
-          "titleSize": 20,
-          "valueSize": 28
+          "titleSize": 6,
+          "valueSize": 20
         }
       },
       "pluginVersion": "10.4.2",
@@ -410,7 +410,7 @@
           "values": false
         },
         "text": {
-          "titleSize": 20,
+          "titleSize": 8,
           "valueSize": 28
         }
       },

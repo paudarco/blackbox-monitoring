@@ -47,7 +47,7 @@ validate:
 
 reload:
 	curl -s -X POST http://localhost:9090/-/reload && echo "Prometheus reloaded"
-	curl -s -X POST http://localhost:9115/-/reload && echo "Blackbox reloaded"
+	docker compose restart blackbox && echo "Blackbox restarted"
 
 targets:
 	@curl -s http://localhost:9090/api/v1/targets | python3 -c \

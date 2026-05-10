@@ -1,23 +1,7 @@
-version: "3.9"
-
 # =============================================================================
 # External Monitoring Stack
 # Blackbox Exporter + Prometheus + Alertmanager + Grafana
 # =============================================================================
-
-networks:
-  monitoring:
-    driver: bridge
-    name: monitoring
-
-volumes:
-  prometheus_data:
-    driver: local
-  grafana_data:
-    driver: local
-  alertmanager_data:
-    driver: local
-
 services:
 
   # ---------------------------------------------------------------------------
@@ -152,3 +136,16 @@ services:
       start_period: 30s
     labels:
       org.label-schema.group: "monitoring"
+
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  alertmanager_data:
+    driver: local
+
+networks:
+  monitoring:
+    driver: bridge
+    name: monitoring

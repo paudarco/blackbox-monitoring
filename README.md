@@ -76,13 +76,3 @@ Blackbox Exporter — наиболее зрелый и поддерживаем�
 - Работает без агентов на целевых серверах
 
 Подробнее: [docs/limitations.md](docs/limitations.md)
-
-
-## Самопроверка соответствия ТЗ
-
-- ✅ Self-hosted open-source стек (Prometheus + Blackbox + Alertmanager + Grafana).
-- ✅ Проверки HTTP/HTTPS, status code, body/JSON, latency/timeout, TLS expiry.
-- ✅ Telegram-алерты через `.env` (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`).
-- ✅ Есть demo-блок для проверки алертов (намеренно падающий check).
-- ✅ Документация: запуск, алерты, добавление checks, ограничения.
-- ✅ История результатов хранится в Prometheus TSDB (retention настраивается в `.env`).

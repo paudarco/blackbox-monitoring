@@ -1,7 +1,7 @@
 ---
 # =============================================================================
 # Alertmanager Configuration
-# Native Telegram receiver (Alertmanager v0.27+ supports telegram_configs)
+# Native Telegram receiver (Alertmanager v0.25+ supports telegram_configs)
 # =============================================================================
 
 global:
@@ -45,7 +45,7 @@ receivers:
   - name: "telegram-alerts"
     telegram_configs:
       - bot_token: "${TELEGRAM_BOT_TOKEN}"
-        chat_id: "${TELEGRAM_CHAT_ID}"
+        chat_id: ${TELEGRAM_CHAT_ID}
         api_url: "https://api.telegram.org"
         parse_mode: "HTML"
         message: |

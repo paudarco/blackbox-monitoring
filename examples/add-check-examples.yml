@@ -60,9 +60,9 @@ example_body_check:
   #   prober: http
   #   http:
   #     valid_status_codes: [200]
-  #     fail_if_not_matches_regexp:
+  #     fail_if_body_not_matches_regexp:
   #       - "Welcome|Dashboard|Logged in"
-  #     fail_if_matches_regexp:
+  #     fail_if_body_matches_regexp:
   #       - "Error 500|Maintenance|Unavailable"
 
   job_name: "blackbox_body_myapp"

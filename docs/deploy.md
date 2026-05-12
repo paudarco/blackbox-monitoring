@@ -21,8 +21,8 @@ docker compose version  # Docker Compose version v2+
 ## Шаг 2 — Клонировать репозиторий
 
 ```bash
-git clone https://github.com/your-org/external-monitoring /opt/external-monitoring
-cd /opt/external-monitoring
+git clone https://github.com/paudarco/blackbox-monitoring /opt/blackbox-monitoring
+cd /opt/blackbox-monitoring
 ```
 
 ## Шаг 3 — Настроить переменные окружения
@@ -41,6 +41,13 @@ GF_ADMIN_PASSWORD=your_strong_password_here
 ```
 
 ## Шаг 4 — Запустить
+
+```bash
+make up 
+```
+> Для make-команд требуется утилита Makefile. Установка - `sudo apt install build-essential`
+
+или
 
 ```bash
 docker compose up -d
@@ -67,64 +74,24 @@ curl -s http://localhost:9090/api/v1/targets | python3 -m json.tool | grep -E '"
 curl -s "http://localhost:9115/probe?target=https://www.google.com&module=http_2xx" | grep probe_success
 ```
 
-## Настройка Nginx как reverse proxy (рекомендуется)
-
-```bash
-apt install nginx -y
-```
-
-Создать `/etc/nginx/sites-available/monitoring`:
-
-```nginx
-server {
-    listen 80;
-    server_name monitoring.yourdomain.com;
-
-    # Redirect to HTTPS
-    return 301 https://$host$request_uri;
-}
-
-server {
-    listen 443 ssl;
-    server_name monitoring.yourdomain.com;
-
-    ssl_certificate /etc/letsencrypt/live/monitoring.yourdomain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/monitoring.yourdomain.com/privkey.pem;
-
-    # Grafana
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-
-    # Prometheus (restrict access)
-    location /prometheus/ {
-        auth_basic "Monitoring";
-        auth_basic_user_file /etc/nginx/.htpasswd;
-        proxy_pass http://127.0.0.1:9090/;
-    }
-}
-```
-
-```bash
-ln -s /etc/nginx/sites-available/monitoring /etc/nginx/sites-enabled/
-nginx -t && systemctl reload nginx
-```
-
-## Обновление
-
-```bash
-cd /opt/external-monitoring
-docker compose pull
-docker compose up -d
-docker compose ps
-```
+Также дашборды доступны на :3000 порту по ip-адресу выбранного сервера, например: `185.218.137.1:3000`
 
 ## Автозапуск после перезагрузки
 
 Docker с restart policy `unless-stopped` автоматически перезапускает контейнеры. Убедитесь, что Docker запускается при старте системы:
 
 ```bash
-sudo systemctl enable docker
+sudo systemctl enable --now docker
+sudo systemctl enable containerd
+
+# Проверка, что сервис включен в автозапуск
+systemctl is-enabled docker
+
+# Проверка, что контейнеры получили restart policy
+docker inspect blackbox --format '{{ .HostConfig.RestartPolicy.Name }}'
+docker inspect prometheus --format '{{ .HostConfig.RestartPolicy.Name }}'
+docker inspect alertmanager --format '{{ .HostConfig.RestartPolicy.Name }}'
+docker inspect grafana --format '{{ .HostConfig.RestartPolicy.Name }}'
 ```
+
+Если вывод `systemctl is-enabled docker` = `enabled`, а для контейнеров выводится `unless-stopped`, автозапуск настроен корректно.

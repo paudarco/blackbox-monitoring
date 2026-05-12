@@ -1,0 +1,13 @@
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# OS/editor artifacts
+.DS_Store
+*.swp
+*.swo
+
+# Local Docker override
+compose.override.yml
+docker-compose.override.yml

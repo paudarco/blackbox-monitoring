@@ -33,7 +33,7 @@ docker compose up -d
 docker compose ps
 
 # 6. Открыть Grafana
-# http://localhost:3000  (admin / changeme)
+# http://localhost:3000  (логин/пароль из .env: GF_ADMIN_USER / GF_ADMIN_PASSWORD)
 ```
 
 Через 60–90 секунд Prometheus начнёт собирать метрики.

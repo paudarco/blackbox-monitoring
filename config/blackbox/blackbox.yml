@@ -20,7 +20,7 @@ modules:
       preferred_ip_protocol: "ip4"
       ip_protocol_fallback: true
       tls_config:
-        insecure_skip_verify: false
+        insecure_skip_verify: true
 
   # ---------------------------------------------------------------------------
   # http_2xx_insecure — same but skip TLS verification (for self-signed certs)
@@ -67,7 +67,7 @@ modules:
       preferred_ip_protocol: "ip4"
       headers:
         Accept: application/json
-      fail_if_not_matches_regexp:
+      fail_if_body_not_matches_regexp:
         - "." # Response body must be non-empty
 
   # ---------------------------------------------------------------------------
@@ -82,7 +82,7 @@ modules:
       method: GET
       follow_redirects: true
       preferred_ip_protocol: "ip4"
-      fail_if_not_matches_regexp:
+      fail_if_body_not_matches_regexp:
         - "Example Domain"  # Override per target via relabeling if needed
 
   # ---------------------------------------------------------------------------
@@ -99,7 +99,7 @@ modules:
       follow_redirects: false
       preferred_ip_protocol: "ip4"
       tls_config:
-        insecure_skip_verify: false
+        insecure_skip_verify: true
 
   # ---------------------------------------------------------------------------
   # http_strict_200 — must return exactly 200, no redirects

@@ -5,9 +5,9 @@
 # =============================================================================
 
 global:
-  scrape_interval: 60s          # How often to probe targets
-  evaluation_interval: 30s      # How often to evaluate alert rules
-  scrape_timeout: 30s           # Probe timeout (must be < scrape_interval)
+  scrape_interval: 60s          # Как часто опрашивать targets
+  evaluation_interval: 30s      # Как часто вычислять alert rules
+  scrape_timeout: 25s           # Должно быть строго меньше scrape_interval (60s)
 
   external_labels:
     monitor: "external-monitoring"
@@ -80,7 +80,7 @@ scrape_configs:
           - https://api.github.com
           - https://httpbin.org/get
           - https://jsonplaceholder.typicode.com/posts/1
-          - https://api.publicapis.org/entries
+          - https://catfact.ninja/fact
         labels:
           check_type: "api"
           environment: "public"
@@ -129,7 +129,6 @@ scrape_configs:
           - https://example.com
         labels:
           check_type: "body"
-          expected_content: "Example Domain"
           environment: "public"
     relabel_configs:
       - source_labels: [__address__]
@@ -148,7 +147,7 @@ scrape_configs:
     params:
       module: [http_2xx]
     scrape_interval: 30s
-    scrape_timeout: 20s
+    scrape_timeout: 15s
     static_configs:
       - targets:
           - https://www.google.com
@@ -166,7 +165,7 @@ scrape_configs:
 
   # ---------------------------------------------------------------------------
   # INTENTIONALLY BROKEN — always fails to test alerting pipeline
-  # Sends alert immediately after 2 consecutive failures (for demo/test)
+  # Sends alert approximately 1 minute after start (for demo/test)
   # ---------------------------------------------------------------------------
   - job_name: "blackbox_broken_demo"
     metrics_path: /probe

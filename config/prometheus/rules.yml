@@ -26,18 +26,6 @@ groups:
             Check type: {{ $labels.check_type }}
           runbook: "Check if the service is reachable. Verify DNS resolution and network connectivity."
 
-      # Target was down, now recovered
-      - alert: ServiceRecovered
-        expr: probe_success == 1
-        for: 1m
-        labels:
-          severity: info
-        annotations:
-          summary: "Service {{ $labels.instance }} has RECOVERED"
-          description: |
-            Probe for {{ $labels.instance }} is now succeeding.
-            Job: {{ $labels.job }}
-
   # ---------------------------------------------------------------------------
   # Latency / Timeout Alerts
   # ---------------------------------------------------------------------------
@@ -124,13 +112,12 @@ groups:
     interval: 30s
     rules:
 
-      # HTTP probe returned non-2xx status
       - alert: HTTPStatusCodeError
         expr: |
-          probe_success == 0
-          and
           probe_http_status_code != 0
-          and
+          and on(instance, job)
+          probe_success == 0
+          and on(instance, job)
           (probe_http_status_code < 200 or probe_http_status_code >= 300)
         for: 2m
         labels:
@@ -147,8 +134,21 @@ groups:
   - name: demo_alerts
     interval: 30s
     rules:
+      # Always-firing heartbeat alert to verify Alertmanager -> Telegram delivery.
+      # - alert: DemoAlertHeartbeat
+      #   expr: vector(1)
+      #   for: 0m
+      #   labels:
+      #     severity: info
+      #     demo: "true"
+      #   annotations:
+      #     summary: "[DEMO] Alerting pipeline heartbeat"
+      #     description: |
+      #       This alert is always firing and is used only to verify
+      #       Prometheus -> Alertmanager -> Telegram delivery.
+      #       Remove or disable after initial setup verification.
 
-      # Intentionally broken check — fires immediately for alert pipeline testing
+      # Intentionally broken check — fires approximately 1 min after start
       - alert: DemoAlertBrokenCheck
         expr: |
           probe_success{job="blackbox_broken_demo"} == 0

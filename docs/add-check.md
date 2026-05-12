@@ -22,6 +22,17 @@
 curl -X POST http://localhost:9090/-/reload
 ```
 
+## Что конкретно меняется после добавления проверки
+
+После добавления/изменения checks в `prometheus.yml` ожидаемое поведение такое:
+
+1. **В Prometheus /targets** появляется новый `instance` со статусом `UP` или `DOWN`.
+2. **В метриках** появляются/обновляются ряды `probe_success`, `probe_duration_seconds`, `probe_http_status_code` (если это HTTP check), `probe_ssl_earliest_cert_expiry` (если TLS check).
+3. **В Grafana** в существующих панелях добавляется новая серия с вашим `instance` (отдельный дашборд обычно не нужен).
+4. **В Alertmanager** при устойчивом сбое (после `for:` из rules) появляется firing-алерт.
+5. **В Telegram** приходит сообщение о сбое и затем о восстановлении (`send_resolved: true`).
+
+
 ## Типы проверок
 
 ### 1. Проверка доступности (HTTP 2xx)
@@ -80,7 +91,7 @@ modules:
       method: GET
       fail_if_body_not_matches_regexp:
         - "Welcome to MyApp"     # текст, который должен быть в ответе
-      fail_if_matches_regexp:
+      fail_if_body_matches_regexp:
         - "Error|Exception|500"  # текст, которого не должно быть
 ```
 
@@ -115,6 +126,15 @@ modules:
   static_configs:
     - targets:
         - https://slow-api.example.com
+      labels:
+        check_type: "latency"
+  relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - source_labels: [__param_target]
+      target_label: instance
+    - target_label: __address__
+      replacement: blackbox:9115
 ```
 
 ### 5. Проверка TLS-сертификата
@@ -136,7 +156,7 @@ modules:
 | Статус-код = 200           | `valid_status_codes: [200]`                         |
 | Статус-код = любой 2xx     | `valid_status_codes: []` (по умолчанию)             |
 | Тело содержит строку       | `fail_if_body_not_matches_regexp: ["your_string"]`       |
-| Тело НЕ содержит строку    | `fail_if_matches_regexp: ["error_string"]`          |
+| Тело НЕ содержит строку    | `fail_if_body_matches_regexp: ["error_string"]`          |
 | Таймаут                    | `timeout: 10s` в модуле + порог в rules.yml         |
 | TLS-сертификат не истёк    | `http_tls_expiry` модуль + правило алерта           |
 

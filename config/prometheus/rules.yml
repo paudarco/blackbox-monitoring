@@ -134,6 +134,19 @@ groups:
   - name: demo_alerts
     interval: 30s
     rules:
+      # Always-firing heartbeat alert to verify Alertmanager -> Telegram delivery.
+      # - alert: DemoAlertHeartbeat
+      #   expr: vector(1)
+      #   for: 0m
+      #   labels:
+      #     severity: info
+      #     demo: "true"
+      #   annotations:
+      #     summary: "[DEMO] Alerting pipeline heartbeat"
+      #     description: |
+      #       This alert is always firing and is used only to verify
+      #       Prometheus -> Alertmanager -> Telegram delivery.
+      #       Remove or disable after initial setup verification.
 
       # Intentionally broken check — fires approximately 1 min after start
       - alert: DemoAlertBrokenCheck

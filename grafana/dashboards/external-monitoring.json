@@ -119,7 +119,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "probe_success{job=~\"blackbox_http_websites|blackbox_http_apis|blackbox_http_body\"}",
+          "expr": "probe_success{job=~\"blackbox_.*\",instance!=\"blackbox:9115\"}",
           "legendFormat": "{{ instance }}",
           "refId": "A"
         }
@@ -201,7 +201,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "probe_duration_seconds{job=~\"blackbox_http_websites|blackbox_http_apis|blackbox_latency\"}",
+          "expr": "probe_duration_seconds{job=~\"blackbox_.*\",instance!=\"blackbox:9115\"}",
           "legendFormat": "{{ instance }}",
           "refId": "A"
         }
@@ -346,7 +346,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "probe_http_status_code{job=~\"blackbox_http_websites|blackbox_http_apis\"}",
+          "expr": "probe_http_status_code{job=~\"blackbox_.*\",instance!=\"blackbox:9115\"}",
           "legendFormat": "{{ instance }}",
           "refId": "A"
         }
@@ -429,7 +429,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "avg_over_time(probe_success{job=~\"blackbox_http_websites|blackbox_http_apis\"}[24h])",
+          "expr": "avg_over_time(probe_success{job=~\"blackbox_.*\",instance!=\"blackbox:9115\"}[24h])",
           "legendFormat": "{{ instance }}",
           "refId": "A"
         }

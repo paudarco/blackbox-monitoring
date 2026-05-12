@@ -70,14 +70,13 @@ services:
   # Alertmanager — alert routing & Telegram notifications
   # ---------------------------------------------------------------------------
   alertmanager:
-    image: prom/alertmanager:v0.30.0
+    build:
+      context: .
+      dockerfile: docker/alertmanager/Dockerfile
+    image: blackbox-alertmanager:v0.30.0
     container_name: alertmanager
     restart: unless-stopped
-    command:
-      - "--config.file=/etc/alertmanager/alertmanager.yml"
-      - "--storage.path=/alertmanager"
-      - "--log.level=info"
-      - "--config.expand-env=true"
+    entrypoint: ["/usr/local/bin/alertmanager-entrypoint.sh"]
     environment:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
       - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}

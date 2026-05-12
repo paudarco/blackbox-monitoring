@@ -44,8 +44,8 @@ inhibit_rules:
 receivers:
   - name: "telegram-alerts"
     telegram_configs:
-      - bot_token: "${TELEGRAM_BOT_TOKEN}"
-        chat_id: ${TELEGRAM_CHAT_ID}
+      - bot_token: "__TELEGRAM_BOT_TOKEN__"
+        chat_id: __TELEGRAM_CHAT_ID__
         api_url: "https://api.telegram.org"
         parse_mode: "HTML"
         message: |
